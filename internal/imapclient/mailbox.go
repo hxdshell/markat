@@ -22,10 +22,10 @@ func (ic *ImapClient) List() ([]imap.MailboxInfo, error) {
 	return mailboxes, err
 }
 
-func (ic *ImapClient) Select(name string) error {
+func (ic *ImapClient) Select(name string) (*imap.MailboxStatus, error) {
 	ic.Lock()
 	status, err := ic.conn.Select(name, false)
 	ic.mb = status
 	ic.Unlock()
-	return err
+	return status, err
 }

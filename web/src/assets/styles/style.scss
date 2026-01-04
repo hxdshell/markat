@@ -1,0 +1,130 @@
+@font-face {
+  font-family: "Inter Regular";
+  src: url("../fonts/Inter-Regular.woff2")format("woff2");
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("../fonts/InterVariable.woff2")format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+:root{
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e5e5;
+  --neutral-300: #d4d4d4;
+  --neutral-400: #a3a3a3;
+  --neutral-500: #737373;
+  --neutral-600: #525252;
+  --neutral-700: #404040;
+  --neutral-800: #262626;
+  --neutral-900: #171717;
+  --neutral-950: #0a0a0a;
+
+}
+
+$text-default-color: var(--neutral-900);
+$border-color: var(--neutral-300);
+$header-height: 44px;
+$left-nav-width: 200px;
+$footer-height: 18px;
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html,body{
+  height: 100%;
+}
+body{
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: $text-default-color;
+}
+.container{
+  height: 100vh;
+  // overflow: hidden;
+}
+ul{
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+a{
+  text-decoration: none;
+  color: inherit;
+}
+a:hover{
+  text-decoration: underline;
+}
+header{
+  height: $header-height;
+  display: flex;
+
+  div{
+    height: 100%;
+  }
+  .logo-box{
+    width: $left-nav-width;
+    display: flex;
+    align-items: flex-end;
+    border-right: 1px solid $border-color;
+    border-bottom: 1px solid $border-color;
+
+    
+    h1{
+      margin-left: 1rem;
+      font-weight: 500;
+      color: var(--neutral-500);
+    }
+  }
+  .search-bar-box{
+    width: calc(100% - $left-nav-width);
+    border-bottom: 1px solid $border-color;
+  }
+}
+footer{
+  height: $footer-height;
+  border-top: 1px solid $border-color;
+}
+.layout-container{
+  display: flex;
+  height: calc(100vh - $header-height - $footer-height);
+
+  .left-nav{
+    width: $left-nav-width;
+    border-right: 1px solid $border-color;
+    ul{
+      border-bottom: 1px solid $border-color;
+      li{
+        a{
+          padding: 0.5rem 0;
+          padding-left: 1rem;
+          display: block;
+          height: 100%;
+          font-weight: 500;
+        }
+        :hover{
+          background-color: var(--neutral-100);
+        }
+      }
+    }
+  }
+  .main-section{
+    width: calc(100% - $left-nav-width);
+  }
+}
+.loading-container{
+  display: flex;
+  justify-content: center;
+  p{
+    background-color: var(--neutral-200);
+    font-weight: 600;
+    padding: 0.2rem;
+  }
+}

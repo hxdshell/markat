@@ -64,6 +64,8 @@ func Run() int {
 	case err := <-errchan:
 		if err != nil {
 			log.Println(err)
+		} else {
+			log.Println("Logout")
 		}
 		break
 	case <-time.After(3 * time.Second):

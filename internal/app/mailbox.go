@@ -8,6 +8,11 @@ import (
 type ApiResponse struct {
 	Message string `json:"message"`
 	Data    any    `json:"data"`
+	Cause   any    `json:"cause"`
+}
+
+type SelectMbRequest struct {
+	Mailbox string `json:"mailbox"`
 }
 
 func (a *App) MailboxListHandler(w http.ResponseWriter, r *http.Request) {
@@ -28,5 +33,35 @@ func (a *App) MailboxListHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	response.Data = mbnames
 	response.Message = "mailboxes fetched successfully"
+	json.NewEncoder(w).Encode(response)
+}
+
+func (a *App) SelectMailBoxHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	response := &ApiResponse{}
+	response.Data = nil
+
+	var mbReq SelectMbRequest
+	err := json.NewDecoder(r.Body).Decode(&mbReq)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response.Message = "could not select mailbox"
+		response.Cause = "invalid request data"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	mbInfo, err := a.Core.SelectMailBox(mbReq.Mailbox)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response.Message = "could not select mailbox"
+		response.Cause = "invalid mailbox name"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	response.Message = "mailbox is now set to " + mbReq.Mailbox
+	response.Data = mbInfo
 	json.NewEncoder(w).Encode(response)
 }
