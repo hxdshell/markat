@@ -16,11 +16,12 @@ type SelectMbRequest struct {
 }
 
 func (a *App) MailboxListHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
 
 	response := &ApiResponse{}
 
-	mbnames, err := a.Core.MailBoxList()
+	mbnames, err := a.Core.MailBoxList(ctx)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -37,6 +38,7 @@ func (a *App) MailboxListHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) SelectMailBoxHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
 	response := &ApiResponse{}
 	response.Data = nil
@@ -51,7 +53,7 @@ func (a *App) SelectMailBoxHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mbInfo, err := a.Core.SelectMailBox(mbReq.Mailbox)
+	mbInfo, err := a.Core.SelectMailBox(ctx, mbReq.Mailbox)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response.Message = "could not select mailbox"
@@ -63,5 +65,24 @@ func (a *App) SelectMailBoxHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	response.Message = "mailbox is now set to " + mbReq.Mailbox
 	response.Data = mbInfo
+	json.NewEncoder(w).Encode(response)
+}
+
+func (a *App) FetchEnvelopes(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	w.Header().Set("Content-Type", "application/json")
+	response := &ApiResponse{}
+
+	envelopes, err := a.Core.FetchEnvelopes(ctx)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response.Data = nil
+		response.Message = "could not fetch envelopes"
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	response.Data = envelopes
+	response.Message = "envelopes fetched"
 	json.NewEncoder(w).Encode(response)
 }

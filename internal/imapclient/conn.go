@@ -1,6 +1,7 @@
 package imapclient
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/emersion/go-imap"
@@ -35,8 +36,18 @@ func (ic *ImapClient) Logout() error {
 	return err
 }
 
-func (ic *ImapClient) Noop() {
+func (ic *ImapClient) Noop(stop chan bool) error {
+	done := make(chan bool, 1)
 	ic.Lock()
-	ic.conn.Noop() // ignoring the error
-	ic.Unlock()
+	defer ic.Unlock()
+	go func() {
+		ic.conn.Noop() // ignoring the error
+		done <- true
+	}()
+	select {
+	case <-done:
+		return nil
+	case <-stop:
+		return errors.New("stop order")
+	}
 }

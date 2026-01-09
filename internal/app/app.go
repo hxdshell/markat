@@ -43,7 +43,6 @@ func Run() int {
 		return -1
 	}
 	log.Printf("Login successful : %s\n", username)
-
 	done := make(chan bool)
 	workers.NoopTicker(done, ic)
 

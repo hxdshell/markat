@@ -8,6 +8,7 @@ import {
 import Layout from '../pages/Layout'
 import { fetchAllMailboxes, prepareMailBox } from '../api/mailbox'
 import MailBoxPage from '../pages/MailBoxPage'
+import Loading from '../components/ui/Loading'
 
 const rootRoute = createRootRoute({ component: Outlet })
 
@@ -15,6 +16,7 @@ export const appRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'app',
   loader: () => fetchAllMailboxes(),
+  shouldReload: false,
   component: Layout,
 })
 const indexRoute = createRoute({
@@ -36,6 +38,7 @@ export const mbNameRoute = createRoute({
   getParentRoute: () => mbRoute,
   path: '$mbName',
   loader: ({ params }) => prepareMailBox(params.mbName),
+  pendingComponent: Loading,
   component: MailBoxPage,
 })
 const routeTree = rootRoute.addChildren([

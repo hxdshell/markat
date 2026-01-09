@@ -44,4 +44,5 @@ func RegisterRoutes(a *App) {
 	}).Methods("GET")
 	r.HandleFunc("/api/mb/list", a.MailboxListHandler).Methods("GET")
 	r.HandleFunc("/api/mb/select", a.SelectMailBoxHandler).Methods("PUT")
+	r.HandleFunc("/api/mb/envelopes", a.FetchEnvelopes).Methods("GET")
 }

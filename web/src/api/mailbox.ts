@@ -5,5 +5,9 @@ export async function fetchAllMailboxes() {
 }
 
 export async function prepareMailBox(mbName: string) {
-  return client.put('/mb/select', { mailbox: mbName })
+  const resp = client.put('/mb/select', { mailbox: mbName })
+  if ((await resp).status !== 200) {
+    return resp
+  }
+  return client.get('/mb/envelopes')
 }
