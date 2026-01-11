@@ -1,80 +1,30 @@
 import { ChevronLeft, ChevronRight, RotateCw } from 'lucide-react'
 import { mbNameRoute } from '../router'
-import { useState } from 'react'
-import { fetchEnvelopes } from '../api/mailbox'
-import Loading from '../components/ui/Loading'
 
 export default function MailBoxPage() {
   const loaderData: ApiResponseType = mbNameRoute.useLoaderData()
-  const envelopeData: EnvelopeResponse = loaderData.data
-
-  const [data, setData] = useState(envelopeData)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const navigate = mbNameRoute.useNavigate()
+  const data: EnvelopeResponse = loaderData.data
 
   async function refersh() {
-    try {
-      setLoading(true)
-      const resp = await fetchEnvelopes(1)
-      if (resp.status !== 200) {
-        setError(resp.message)
-      } else {
-        setData(resp.data)
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('unkown error, please debug')
-      }
-    } finally {
-      setLoading(false)
-    }
+    navigate({ search: (s: any) => ({ ...s, page: 1 }) })
   }
 
   async function prev() {
-    try {
-      setLoading(true)
-      const resp = await fetchEnvelopes(data.page - 1)
-      if (resp.status !== 200) {
-        setError(resp.message)
-      } else {
-        setData(resp.data)
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('unkown error, please debug')
-      }
-    } finally {
-      setLoading(false)
+    if (data.page > 1) {
+      navigate({ search: (s: any) => ({ ...s, page: data.page - 1 }) })
     }
   }
   async function next() {
-    try {
-      setLoading(true)
-      const resp = await fetchEnvelopes(data.page + 1)
-      if (resp.status !== 200) {
-        setError(resp.message)
-      } else {
-        setData(resp.data)
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('unkown error, please debug')
-      }
-    } finally {
-      setLoading(false)
+    if (data.end !== data.total) {
+      navigate({ search: (s: any) => ({ ...s, page: data.page + 1 }) })
     }
   }
 
-  if (loaderData.status != 200 || error != null) {
+  if (loaderData.status != 200) {
     return (
       <>
-        <p>Error {error}</p>
+        <p>{loaderData.message}</p>
       </>
     )
   } else {
@@ -90,7 +40,6 @@ export default function MailBoxPage() {
               <RotateCw />
             </button>
           </div>
-          {loading ? <Loading /> : null}
           <div>
             <button
               disabled={data.page === 1}

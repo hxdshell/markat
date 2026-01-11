@@ -37,9 +37,14 @@ const mbRoute = createRoute({
 export const mbNameRoute = createRoute({
   getParentRoute: () => mbRoute,
   path: '$mbName',
-  loader: ({ params }) => prepareMailBox(params.mbName),
+  validateSearch: (search: Record<string, unknown>) => {
+    const page = parseInt(String(search.page), 10)
+    return { page: page > 0 ? page : 1 }
+  },
+  loaderDeps: ({ search: { page } }) => ({ page }),
+  loader: ({ params, deps }) => prepareMailBox(params.mbName, deps.page),
   pendingComponent: Loading,
-  pendingMinMs: 100,
+  pendingMinMs: 0,
   component: MailBoxPage,
 })
 const routeTree = rootRoute.addChildren([

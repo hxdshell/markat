@@ -70,6 +70,7 @@ func (c *Core) SelectMailBox(ctx context.Context, name string) (*MailBoxInfo, er
 func (c *Core) FetchEnvelopes(ctx context.Context, page int, pageSize int) (*EnvelopeResponse, error) {
 	envelopes := []EnvelopeDisplay{}
 	response := &EnvelopeResponse{}
+	response.Envelopes = envelopes
 	messages, err := c.ImapClient.FetchAllUids(ctx)
 
 	if err != nil {
@@ -152,11 +153,8 @@ func (c *Core) FetchEnvelopes(ctx context.Context, page int, pageSize int) (*Env
 		}
 		envelopes = append(envelopes, envlp)
 	}
-	if envelopes == nil {
-		envelopes = []EnvelopeDisplay{}
-	} else {
-		log.Println("ENVELOPES", len(envelopes))
-	}
+
+	log.Println("ENVELOPES", len(envelopes))
 	response.Envelopes = envelopes
 	return response, err
 }
