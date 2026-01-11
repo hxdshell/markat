@@ -2,10 +2,11 @@ package core
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"markat/utils"
-	"time"
+	"sort"
 )
 
 type MailBoxInfo struct {
@@ -17,17 +18,24 @@ type MailBoxInfo struct {
 }
 
 type EnvelopeDisplay struct {
-	Uid          uint32    `json:"uid"`
-	InternalDate time.Time `json:"internalDate"`
-	From         []string  `json:"from"`
-	FromName     []string  `json:"fromName"`
-	To           []string  `json:"to"`
-	ToName       []string  `json:"toName"`
-	Sender       []string  `json:"sender"`
-	Date         time.Time `json:"date"`
-	Subject      string    `json:"subject"`
-	Size         string    `json:"size"`
-	Flags        []string  `json:"flags"`
+	Uid      uint32   `json:"uid"`
+	From     []string `json:"from"`
+	FromName []string `json:"fromName"`
+	To       []string `json:"to"`
+	ToName   []string `json:"toName"`
+	Sender   []string `json:"sender"`
+	Date     string   `json:"date"`
+	Subject  string   `json:"subject"`
+	Size     string   `json:"size"`
+	Flags    []string `json:"flags"`
+}
+
+type EnvelopeResponse struct {
+	Page      int               `json:"page"`
+	Start     int               `json:"start"`
+	End       int               `json:"end"`
+	Total     int               `json:"total"`
+	Envelopes []EnvelopeDisplay `json:"envelopes"`
 }
 
 func (c *Core) MailBoxList(ctx context.Context) ([]string, error) {
@@ -59,14 +67,51 @@ func (c *Core) SelectMailBox(ctx context.Context, name string) (*MailBoxInfo, er
 	return mbInfo, err
 }
 
-func (c *Core) FetchEnvelopes(ctx context.Context) ([]EnvelopeDisplay, error) {
-	var envelopes []EnvelopeDisplay
-	messages, err := c.ImapClient.FetchEnvelopes(ctx, uint32(10))
+func (c *Core) FetchEnvelopes(ctx context.Context, page int, pageSize int) (*EnvelopeResponse, error) {
+	envelopes := []EnvelopeDisplay{}
+	response := &EnvelopeResponse{}
+	messages, err := c.ImapClient.FetchAllUids(ctx)
 
 	if err != nil {
-		return envelopes, err
+		return response, err
+	} else if len(messages) == 0 {
+		return response, err
 	}
 
+	sort.Slice(messages, func(i, j int) bool {
+		val := messages[i].InternalDate.Compare(messages[j].InternalDate)
+
+		switch val {
+		case 1:
+			return true
+		case -1:
+			return false
+		}
+
+		return messages[i].Uid > messages[j].Uid
+	})
+
+	var uids []uint32
+	for _, msg := range messages {
+		uids = append(uids, msg.Uid)
+	}
+	start := pageSize * (page - 1)
+
+	if start >= len(uids) || start < 0 {
+		return response, errors.New("404")
+	}
+
+	end := min(start+pageSize, len(uids))
+
+	slicedUids := uids[start:end]
+	messages, err = c.ImapClient.FetchEnvelopes(ctx, slicedUids)
+	if err != nil {
+		return response, err
+	}
+	response.Page = page
+	response.Start = start + 1
+	response.End = end
+	response.Total = len(uids)
 	for _, msg := range messages {
 
 		var fromList []string
@@ -92,18 +137,18 @@ func (c *Core) FetchEnvelopes(ctx context.Context) ([]EnvelopeDisplay, error) {
 			senderList = append(senderList, sender)
 		}
 
+		readableDate := msg.Envelope.Date.Format("02 Jan 2006 15:04")
 		envlp := EnvelopeDisplay{
-			Uid:          msg.Uid,
-			InternalDate: msg.InternalDate,
-			Subject:      msg.Envelope.Subject,
-			From:         fromList,
-			FromName:     fromList,
-			To:           toList,
-			ToName:       toNameList,
-			Sender:       senderList,
-			Date:         msg.Envelope.Date,
-			Size:         utils.HumanMessageSize(uint(msg.Size), true, 2),
-			Flags:        msg.Flags,
+			Uid:      msg.Uid,
+			Subject:  msg.Envelope.Subject,
+			From:     fromList,
+			FromName: fromNameList,
+			To:       toList,
+			ToName:   toNameList,
+			Sender:   senderList,
+			Date:     readableDate,
+			Size:     utils.HumanMessageSize(uint(msg.Size), true, 2),
+			Flags:    msg.Flags,
 		}
 		envelopes = append(envelopes, envlp)
 	}
@@ -112,5 +157,6 @@ func (c *Core) FetchEnvelopes(ctx context.Context) ([]EnvelopeDisplay, error) {
 	} else {
 		log.Println("ENVELOPES", len(envelopes))
 	}
-	return envelopes, err
+	response.Envelopes = envelopes
+	return response, err
 }

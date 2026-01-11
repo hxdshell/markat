@@ -36,6 +36,7 @@ func serveHttp(port uint16, app *App) error {
 	select {
 	case <-sigchan:
 		fmt.Print("\r")
+		log.Println("Shutting down applicaiton. This may take few seconds...")
 	case e := <-errchan:
 		return e
 	}

@@ -3,6 +3,9 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type ApiResponse struct {
@@ -73,16 +76,29 @@ func (a *App) FetchEnvelopes(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	response := &ApiResponse{}
 
-	envelopes, err := a.Core.FetchEnvelopes(ctx)
+	vars := mux.Vars(r)
+	page, err := strconv.Atoi(vars["page"])
+
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		response.Data = nil
-		response.Message = "could not fetch envelopes"
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	envelopeData, err := a.Core.FetchEnvelopes(ctx, page, 10)
+	if err != nil {
+		if err.Error() == "404" {
+			w.WriteHeader(http.StatusNotFound)
+			response.Message = "page limit exceeded"
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			response.Message = "could not fetch envelopes"
+		}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	response.Data = envelopes
+	response.Data = *envelopeData
 	response.Message = "envelopes fetched"
 	json.NewEncoder(w).Encode(response)
 }

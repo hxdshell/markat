@@ -28,7 +28,7 @@
 
 $text-default-color: var(--neutral-900);
 $border-color: var(--neutral-300);
-$header-height: 44px;
+$header-height: 48px;
 $left-nav-width: 200px;
 $footer-height: 20px;
 
@@ -64,6 +64,23 @@ a {
 a:hover {
   text-decoration: underline;
 }
+i {
+  cursor: pointer;
+}
+.lucide {
+  color: $text-default-color;
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5px;
+}
+.disabled-icon {
+  color: var(--neutral-400);
+}
+.icon-btn {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
 header {
   height: $header-height;
   display: flex;
@@ -79,8 +96,7 @@ header {
     h1 {
       margin-left: 1rem;
       letter-spacing: -1px;
-      font-weight: 800;
-      color: var(--neutral-500);
+      font-weight: 700;
     }
   }
   .search-bar-box {
@@ -107,7 +123,7 @@ footer {
           font-weight: 500;
         }
         :hover {
-          background-color: var(--neutral-150);
+          background-color: var(--neutral-100);
         }
       }
     }
@@ -119,47 +135,67 @@ footer {
 .loading-container {
   display: flex;
   justify-content: center;
-  p {
+  div {
+    display: flex;
     background-color: var(--neutral-200);
-    font-weight: 600;
     padding: 0.2rem;
+  }
+  p {
+    font-weight: 600;
   }
 }
 table {
   border-collapse: collapse;
 }
 .envelope-container {
-  height: calc(100vh - $header-height - $footer-height);
-  margin: 0.4rem;
+  height: calc(100vh - $header-height - $footer-height - 0.5rem);
   overflow: auto;
-  border-radius: 8px;
+  margin: 0 0.5rem;
+  border-radius: 10px;
+  border: 1px solid $border-color;
+}
+.toolbar {
+  height: 44px;
+  background-color: var(--neutral-50);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.6rem;
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid $border-color;
+
+  div {
+    display: flex;
+    gap: 0.5rem;
+  }
 }
 .envelope-list {
   width: 100%;
-  background-color: var(--neutral-50);
 }
 .envelope {
   cursor: pointer;
   border-bottom: 1px solid $border-color;
   td {
-    padding: 0.2rem 0.4rem;
+    padding: 0.6rem;
   }
-  .meta {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 0.2rem;
-    font-size: 12px;
-    color: var(--neutral-600);
-    .size {
-      background-color: var(--neutral-200);
-      outline: 1px solid $border-color;
-    }
+  .from {
+    width: 22%;
+  }
+  .subject {
+    width: 60%;
+  }
+  .date {
+    width: 18%;
+    color: var(--neutral-500);
+    font-weight: normal;
+    text-align: right;
+    margin-right: auto;
   }
 }
+
 .envelope:hover {
-  background-color: var(--neutral-150);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 -2px 4px rgba(0, 0, 0, 0.15);
 }
 .bold {
   font-weight: 600;

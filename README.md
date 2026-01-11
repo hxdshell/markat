@@ -2,8 +2,9 @@
 
 ## Fundamental Features
 
-- [ ] Navigate mailboxes
-- [ ] Fetch Envelopes and paginate
+- [x] Navigate mailboxes
+- [x] Fetch Envelopes and paginate
+- [ ] Handle & deal with errors on entire application
 - [ ] Render the message body and attachments
 - [ ] Manage metadata of a message
 - [ ] Manage threads

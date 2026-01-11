@@ -9,5 +9,9 @@ export async function prepareMailBox(mbName: string) {
   if ((await resp).status !== 200) {
     return resp
   }
-  return client.get('/mb/envelopes')
+  return fetchEnvelopes(1)
+}
+
+export async function fetchEnvelopes(page: number) {
+  return client.get(`/envelopes/${page}`)
 }

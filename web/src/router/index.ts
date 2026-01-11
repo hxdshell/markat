@@ -39,6 +39,7 @@ export const mbNameRoute = createRoute({
   path: '$mbName',
   loader: ({ params }) => prepareMailBox(params.mbName),
   pendingComponent: Loading,
+  pendingMinMs: 100,
   component: MailBoxPage,
 })
 const routeTree = rootRoute.addChildren([

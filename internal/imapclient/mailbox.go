@@ -50,21 +50,52 @@ func (ic *ImapClient) Select(ctx context.Context, name string) (*imap.MailboxSta
 	}
 }
 
-func (ic *ImapClient) FetchEnvelopes(ctx context.Context, total uint32) ([]imap.Message, error) {
+func (ic *ImapClient) FetchEnvelopes(ctx context.Context, uids []uint32) ([]imap.Message, error) {
 	var messages []imap.Message
 	if ic.mb == nil {
 		return messages, errors.New("mailbox is not selected")
 	}
-	from := uint32(1)
-	to := ic.mb.Messages
-	if ic.mb.Messages > total {
-		from = ic.mb.Messages - total
-	}
+
 	seqset := &imap.SeqSet{}
-	seqset.AddRange(from, to)
+	seqset.AddNum(uids...)
 	items := []imap.FetchItem{imap.FetchUid, imap.FetchInternalDate, imap.FetchEnvelope, imap.FetchFlags, imap.FetchRFC822Size}
 
-	msgchan := make(chan *imap.Message, 10)
+	msgchan := make(chan *imap.Message, 20)
+	done := make(chan error, 1)
+	ic.Lock()
+	defer ic.Unlock()
+	go func() {
+		done <- ic.conn.UidFetch(seqset, items, msgchan)
+	}()
+	msgByUID := map[uint32]*imap.Message{}
+	select {
+	case err := <-done:
+		if err != nil {
+			return messages, err
+		}
+		for msg := range msgchan {
+			msgByUID[msg.Uid] = msg
+		}
+		for _, uid := range uids {
+			msg := msgByUID[uid]
+			messages = append(messages, *msg)
+		}
+		return messages, nil
+	case <-ctx.Done():
+		return messages, ctx.Err()
+	}
+}
+
+func (ic *ImapClient) FetchAllUids(ctx context.Context) ([]imap.Message, error) {
+	var messages []imap.Message
+	if ic.mb == nil {
+		return messages, errors.New("mailbox is not selected")
+	}
+	seqset := &imap.SeqSet{}
+	seqset.AddRange(1, ic.mb.Messages)
+	items := []imap.FetchItem{imap.FetchUid, imap.FetchInternalDate}
+
+	msgchan := make(chan *imap.Message, 20)
 	done := make(chan error, 1)
 	ic.Lock()
 	defer ic.Unlock()

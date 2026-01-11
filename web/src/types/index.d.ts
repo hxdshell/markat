@@ -5,9 +5,15 @@ interface ApiResponseType {
   cause?: string
 }
 
+interface EnvelopeResponse {
+  page: number
+  start: number
+  end: number
+  total: number
+  envelopes: Envelope[]
+}
 interface Envelope {
   uid: number
-  internalDate: string
   from: string[]
   fromName: string[]
   to: string[]
