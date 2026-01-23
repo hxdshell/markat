@@ -50,6 +50,13 @@ func (ic *ImapClient) Select(ctx context.Context, name string) (*imap.MailboxSta
 	}
 }
 
+func (ic *ImapClient) GetCurrentMbName() string {
+	if ic.mb == nil {
+		return ""
+	}
+	return ic.mb.Name
+}
+
 func (ic *ImapClient) FetchEnvelopes(ctx context.Context, uids []uint32) ([]imap.Message, error) {
 	var messages []imap.Message
 	if ic.mb == nil {

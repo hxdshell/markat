@@ -1,83 +1,122 @@
-import { ChevronLeft, ChevronRight, RotateCw } from 'lucide-react'
 import { mbNameRoute } from '../router'
+import { useEffect, useState } from 'react'
+import { fetchEnvelopes, prepareMailBox } from '../api/mailbox'
+import EnvelopeList from '../components/app/EnvelopeList'
+import Loading from '../components/ui/Loading'
 
 export default function MailBoxPage() {
-  const loaderData: ApiResponseType = mbNameRoute.useLoaderData()
+  const { mbName } = mbNameRoute.useParams()
+  const { page } = mbNameRoute.useSearch()
   const navigate = mbNameRoute.useNavigate()
-  const data: EnvelopeResponse = loaderData.data
 
-  async function refersh() {
-    navigate({ search: (s: any) => ({ ...s, page: 1 }) })
+  const [data, setData] = useState<EnvelopeResponse>()
+  const [loading, setLoading] = useState(false)
+  const [selectedMb, setSelectedMb] = useState('')
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    setSelectedMb('')
+    async function fetchData() {
+      try {
+        const resp = await prepareMailBox(mbName)
+        if (resp.status !== 200) {
+          setError(resp.message)
+        } else {
+          setSelectedMb(mbName)
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('unkown err')
+        }
+      }
+    }
+    fetchData()
+  }, [mbName])
+
+  // pagination
+  useEffect(() => {
+    if (selectedMb !== mbName) return
+    async function fetchData() {
+      try {
+        setLoading(true)
+        const resp = await fetchEnvelopes(page)
+        if (resp.status !== 200) {
+          if (resp.status === 404) {
+            navigate({ search: (s: any) => ({ ...s, page: 1 }) })
+          } else {
+            setError(resp.message)
+          }
+        } else {
+          setData(resp.data)
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('unkown err')
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [page, selectedMb])
+
+  async function refresh() {
+    if (page === 1) {
+      try {
+        setLoading(true)
+        const resp = await fetchEnvelopes(page)
+        setData(resp.data)
+        if (resp.status !== 200) {
+          setError(resp.message)
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message)
+        } else {
+          setError('unkown error')
+        }
+      } finally {
+        setLoading(false)
+      }
+    } else {
+      navigate({ search: (s: any) => ({ ...s, page: 1 }) })
+    }
   }
-
-  async function prev() {
+  async function prev(data: EnvelopeResponse) {
     if (data.page > 1) {
       navigate({ search: (s: any) => ({ ...s, page: data.page - 1 }) })
     }
   }
-  async function next() {
+  async function next(data: EnvelopeResponse) {
     if (data.end !== data.total) {
       navigate({ search: (s: any) => ({ ...s, page: data.page + 1 }) })
     }
   }
 
-  if (loaderData.status != 200) {
+  if (error) {
     return (
       <>
-        <p>{loaderData.message}</p>
+        <p>{error}</p>
       </>
     )
   } else {
-    const envelopes: Envelope[] = data.envelopes
-    if (envelopes.length === 0) {
-      return <div>There are no mail in this mailbox</div>
+    if (data) {
+      return (
+        <EnvelopeList
+          mbName={mbName}
+          data={data}
+          loading={loading}
+          refresh={refresh}
+          prev={prev}
+          next={next}
+        />
+      )
+    } else {
+      return <Loading />
     }
-    return (
-      <div className="envelope-container">
-        <div className="toolbar">
-          <div>
-            <button className="icon-btn" onClick={refersh}>
-              <RotateCw />
-            </button>
-          </div>
-          <div>
-            <button
-              disabled={data.page === 1}
-              className="icon-btn"
-              onClick={prev}
-            >
-              <ChevronLeft className={data.page === 1 ? 'disabled-icon' : ''} />
-            </button>
-            {data.start}-{data.end} of {data.total}
-            <button
-              disabled={data.end === data.total}
-              className="icon-btn"
-              onClick={next}
-            >
-              <ChevronRight
-                className={data.end === data.total ? 'disabled-icon' : ''}
-              />
-            </button>
-          </div>
-        </div>
-
-        <table className="envelope-list">
-          <tbody>
-            {data.envelopes.map((envlp: Envelope) => (
-              <tr
-                key={envlp.uid}
-                className={
-                  envlp.flags.includes('\\Seen') ? 'envelope' : 'envelope bold'
-                }
-              >
-                <td className="from">{envlp.from}</td>
-                <td className="subject">{envlp.subject}</td>
-                <td className="date">{envlp.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    )
   }
 }

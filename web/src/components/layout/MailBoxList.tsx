@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { mapIcons } from '../../utils/ui'
 
 export default function MailBoxList({ list }: { list: string[] }) {
   return (
@@ -6,7 +7,8 @@ export default function MailBoxList({ list }: { list: string[] }) {
       {list.map((mb, index) => (
         <li key={index}>
           <Link to={`/mb/$mbName`} params={{ mbName: mb }}>
-            {mb}
+            <span>{mapIcons(mb)}</span>
+            <span>{mb}</span>
           </Link>
         </li>
       ))}

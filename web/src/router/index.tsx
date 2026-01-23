@@ -6,11 +6,14 @@ import {
   redirect,
 } from '@tanstack/react-router'
 import Layout from '../pages/Layout'
-import { fetchAllMailboxes, prepareMailBox } from '../api/mailbox'
+import { fetchAllMailboxes } from '../api/mailbox'
 import MailBoxPage from '../pages/MailBoxPage'
-import Loading from '../components/ui/Loading'
+import ErrorPage from '../pages/ErrorPage'
 
-const rootRoute = createRootRoute({ component: Outlet })
+const rootRoute = createRootRoute({
+  component: Outlet,
+  errorComponent: ({ error }) => <ErrorPage error={error.message} />,
+})
 
 export const appRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -41,10 +44,6 @@ export const mbNameRoute = createRoute({
     const page = parseInt(String(search.page), 10)
     return { page: page > 0 ? page : 1 }
   },
-  loaderDeps: ({ search: { page } }) => ({ page }),
-  loader: ({ params, deps }) => prepareMailBox(params.mbName, deps.page),
-  pendingComponent: Loading,
-  pendingMinMs: 0,
   component: MailBoxPage,
 })
 const routeTree = rootRoute.addChildren([

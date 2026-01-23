@@ -1,4 +1,4 @@
-import { Outlet } from '@tanstack/react-router'
+import { Link, Outlet } from '@tanstack/react-router'
 import MailBoxList from '../components/layout/MailBoxList'
 import { appRoute } from '../router'
 
@@ -8,7 +8,9 @@ export default function Layout() {
     <div className="container">
       <header>
         <div className="logo-box">
-          <h1>Markat</h1>
+          <Link to={'/'}>
+            <h1>Markat</h1>
+          </Link>
         </div>
         <div className="search-bar-box"></div>
       </header>

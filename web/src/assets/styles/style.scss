@@ -39,13 +39,15 @@ $footer-height: 20px;
 }
 html,
 body {
-  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 body {
   font-family: 'Inter', sans-serif;
   font-weight: 400;
   font-size: 14px;
   color: $text-default-color;
+  overflow: hidden; // There's some overflow in the body. I should debug this later
 }
 
 .container {
@@ -113,12 +115,14 @@ footer {
 
   .left-nav {
     width: $left-nav-width;
+    overflow: auto;
     ul {
       li {
         a {
           padding: 0.5rem 0;
           padding-left: 1rem;
-          display: block;
+          display: flex;
+          gap: 0.4rem;
           height: 100%;
           font-weight: 500;
         }
@@ -129,6 +133,8 @@ footer {
     }
   }
   .main-section {
+    height: calc(100vh - $header-height - $footer-height);
+    overflow: hidden;
     width: calc(100% - $left-nav-width);
   }
 }
@@ -195,8 +201,23 @@ table {
 }
 
 .envelope:hover {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 -2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.15),
+    0 -2px 4px rgba(0, 0, 0, 0.15);
 }
 .bold {
   font-weight: 600;
+}
+.error-container {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+
+  h1 {
+    font-size: 42px;
+    color: var(--neutral-500);
+  }
 }
