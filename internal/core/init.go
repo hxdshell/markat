@@ -2,10 +2,13 @@ package core
 
 import (
 	"markat/internal/imapclient"
+	"sync"
 )
 
 type Core struct {
-	ImapClient *imapclient.ImapClient
+	sync.RWMutex
+	ImapClient         *imapclient.ImapClient
+	RecentMsgStructure *MessageStructure
 }
 
 func InitCore(client *imapclient.ImapClient) *Core {

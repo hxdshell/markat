@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bufio"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"os"
@@ -70,4 +71,12 @@ func PrintBanner(path string) {
 		return
 	}
 	fmt.Printf("\x1b[0;93m%s\x1b[0m\n", string(b))
+}
+
+func DecodeBase64(s string) ([]byte, error) {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, nil
+	}
+	return b, nil
 }

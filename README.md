@@ -8,7 +8,6 @@
   - [x] Render single part with plain text
   - [ ] Render Multipart text with text or html
   - [ ] Render Multipart message recursively to handle multipart/mixed
-- [ ] Manage metadata of a message
 - [ ] Manage threads
 - [ ] Implement Search
 - [ ] SMTP for sending mails

@@ -107,7 +107,6 @@ export default function MailBoxPage() {
     if (data) {
       return (
         <EnvelopeList
-          mbName={mbName}
           data={data}
           loading={loading}
           refresh={refresh}

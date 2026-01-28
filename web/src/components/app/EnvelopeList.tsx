@@ -2,14 +2,12 @@ import { ChevronLeft, ChevronRight, RotateCw } from 'lucide-react'
 import Loading from '../ui/Loading'
 
 export default function EnvelopeList({
-  mbName,
   data,
   loading,
   refresh,
   prev,
   next,
 }: {
-  mbName: string
   data: EnvelopeResponse
   loading: boolean
   refresh: () => Promise<void>
@@ -69,9 +67,7 @@ export default function EnvelopeList({
           </tbody>
         </table>
       ) : (
-        <div className="flex mt-1 ml-1">
-          There are no mail in {mbName} folder
-        </div>
+        <div className="flex mt-1 ml-1">There are no mail in this folder</div>
       )}
     </div>
   )
