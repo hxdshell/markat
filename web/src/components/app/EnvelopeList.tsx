@@ -1,19 +1,27 @@
 import { ChevronLeft, ChevronRight, RotateCw } from 'lucide-react'
 import Loading from '../ui/Loading'
+import { useNavigate } from '@tanstack/react-router'
 
 export default function EnvelopeList({
+  mbName,
   data,
   loading,
   refresh,
   prev,
   next,
 }: {
+  mbName: string
   data: EnvelopeResponse
   loading: boolean
   refresh: () => Promise<void>
   prev: (data: EnvelopeResponse) => Promise<void>
   next: (data: EnvelopeResponse) => Promise<void>
 }) {
+  const navigate = useNavigate()
+
+  function openMessage(uid: number) {
+    navigate({ to: `/message/${mbName}/${uid}` })
+  }
   return (
     <div className="envelope-container">
       <div className="toolbar">
@@ -58,7 +66,9 @@ export default function EnvelopeList({
                 className={
                   envlp.flags.includes('\\Seen') ? 'envelope' : 'envelope bold'
                 }
+                onClick={() => openMessage(envlp.uid)}
               >
+                <td>{envlp.uid}</td>
                 <td className="from">{envlp.from}</td>
                 <td className="subject">{envlp.subject}</td>
                 <td className="date">{envlp.date}</td>

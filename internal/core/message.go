@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"markat/utils"
 	"strings"
 
@@ -26,6 +27,13 @@ type MessageAttachment struct {
 	Size        string `json:"size"`
 }
 
+type MessageAttachmentHeader struct {
+	Specifier   string
+	Type        string
+	Disposition string
+	Encoding    string
+}
+
 // This structure contains all the leaf node metadata which helps to fetch them individually
 type MessageStructure struct {
 	Uid      uint32
@@ -40,14 +48,16 @@ type MessageStructure struct {
 }
 
 type MessageMeta struct {
-	Uid          uint32              `json:"uid"`
-	Mb           string              `json:"mb"`
-	From         string              `json:"from"`
-	To           string              `json:"to"`
-	Attatchments []MessageAttachment `json:"attachments"`
+	Uid         uint32              `json:"uid"`
+	Mb          string              `json:"mb"`
+	From        string              `json:"from"`
+	To          string              `json:"to"`
+	Subject     string              `json:"subject"`
+	Date        string              `json:"date"`
+	Attachments []MessageAttachment `json:"attachments"`
 }
 
-func walkBs(bs *imap.BodyStructure, ms *MessageStructure, parts []int) {
+func (c *Core) walkBs(bs *imap.BodyStructure, ms *MessageStructure, parts []int) {
 	if bs == nil {
 		return
 	}
@@ -75,19 +85,39 @@ func walkBs(bs *imap.BodyStructure, ms *MessageStructure, parts []int) {
 			}
 		} else {
 			msgAtchmnt := MessageAttachment{}
-			msgAtchmnt.ContentType = fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+
+			contentDisposition := bs.Disposition
+			contentType := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+			contentLength := bs.Size
+
+			msgAtchmnt.ContentType = contentType
 			specifier := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(parts)), "."), "[]")
 			msgAtchmnt.Specifier = specifier
 			msgAtchmnt.Encoding = bs.Encoding
 			filename, _ := bs.Filename() // ignoring the error for now
 			msgAtchmnt.FileName = filename
-			msgAtchmnt.Size = utils.HumanMessageSize(uint(bs.Size), false, 2)
+			msgAtchmnt.Size = utils.HumanMessageSize(uint(contentLength), false, 2)
 			ms.Attachments = append(ms.Attachments, msgAtchmnt)
+
+			// Cache the headers for the purposes of serving the file
+			attchmntHeader := MessageAttachmentHeader{}
+
+			attchmntHeader.Specifier = specifier
+
+			attchmntHeader.Disposition = fmt.Sprintf("%s; filename=\"%s\"", contentDisposition, filename)
+
+			attchmntHeader.Type = contentType
+			attchmntHeader.Encoding = bs.Encoding
+
+			c.Lock()
+			c.CurrentAttachments = append(c.CurrentAttachments, attchmntHeader)
+			c.Unlock()
+
 		}
 	}
 
 	for i, p := range bs.Parts {
-		walkBs(p, ms, append(parts, i+1))
+		c.walkBs(p, ms, append(parts, i+1))
 	}
 }
 
@@ -115,7 +145,13 @@ func (c *Core) fetchMessageStructure(ctx context.Context, mb string, uid uint32)
 		TextPlain: -1,
 		TextHtml:  -1,
 	}
-	walkBs(bs, ms, nil)
+	// Clear attachments first
+	c.Lock()
+	c.CurrentAttachments = nil
+	c.Unlock()
+
+	// and then walk bs
+	c.walkBs(bs, ms, nil)
 
 	return ms, nil
 }
@@ -141,12 +177,15 @@ func (c *Core) FetchMeta(ctx context.Context, mb string, uid uint32) (*MessageMe
 	c.RecentMsgStructure = ms
 	c.Unlock()
 
+	readableDate := msg.Envelope.Date.Format("Mon, 02 Jan 2006 15:04")
 	meta := &MessageMeta{
-		Uid:          uid,
-		Mb:           mb,
-		From:         headers.Get("From"),
-		To:           headers.Get("To"),
-		Attatchments: ms.Attachments,
+		Uid:         uid,
+		Mb:          mb,
+		From:        headers.Get("From"),
+		To:          headers.Get("To"),
+		Subject:     msg.Envelope.Subject,
+		Date:        readableDate,
+		Attachments: ms.Attachments,
 	}
 	return meta, nil
 }
@@ -182,6 +221,9 @@ func (c *Core) FetchMessageText(ctx context.Context, mb string, uid uint32) ([]b
 	if err != nil {
 		return b, err
 	}
+	if msg == nil {
+		return b, errors.New("not found")
+	}
 
 	var r imap.Literal
 	for _, literal := range msg.Body {
@@ -204,8 +246,72 @@ func (c *Core) FetchMessageText(ctx context.Context, mb string, uid uint32) ([]b
 	}
 
 	if part.Encoding == "base64" {
-		b, err = utils.DecodeBase64(string(b))
+		b, err = utils.DecodeBase64(b)
+	}
+	log.Println("MESSAGE:", mb, uid)
+	return b, nil
+}
+
+func (c *Core) FetchAttachment(ctx context.Context, mb string, uid uint32, specifier string) (MessageAttachmentHeader, []byte, error) {
+	var b []byte
+	var h MessageAttachmentHeader
+
+	currentMb := c.ImapClient.GetCurrentMbName()
+
+	if currentMb != mb {
+		_, err := c.SelectMailBox(ctx, mb)
+		if err != nil {
+			return h, b, err
+		}
 	}
 
-	return b, nil
+	c.RLock()
+	ms := c.RecentMsgStructure
+	if ms != nil {
+		if ms.Uid != uid {
+			c.RUnlock()
+			return h, b, errors.New("not found")
+		}
+	}
+	headers := c.CurrentAttachments
+	c.RUnlock()
+	if headers == nil {
+		return h, b, errors.New("not found")
+	}
+
+	found := false
+	for _, h = range headers {
+		if h.Specifier == specifier {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return h, b, errors.New("not found")
+	}
+
+	msg, _, err := c.ImapClient.FetchMessage(ctx, specifier, uid)
+	if err != nil {
+		return h, b, err
+	}
+	if msg == nil {
+		return h, b, errors.New("not found")
+	}
+
+	var r imap.Literal
+	for _, literal := range msg.Body {
+		r = literal // only one section
+	}
+	b, err = io.ReadAll(r)
+	if err != nil {
+		return h, b, err
+	}
+	if h.Encoding == "base64" {
+		b, err = utils.DecodeBase64(b)
+		if err != nil {
+			return h, b, err
+		}
+	}
+	log.Println("ATTACHMENT:", mb, uid, specifier)
+	return h, b, nil
 }

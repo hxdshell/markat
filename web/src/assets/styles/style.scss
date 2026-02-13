@@ -27,7 +27,7 @@
 }
 
 $text-default-color: var(--neutral-900);
-$border-color: var(--neutral-300);
+$border-color: var(--neutral-200);
 $header-height: 48px;
 $left-nav-width: 200px;
 $footer-height: 20px;
@@ -47,7 +47,12 @@ body {
   font-weight: 400;
   font-size: 14px;
   color: $text-default-color;
+
   overflow: hidden; // There's some overflow in the body. I should debug this later
+}
+pre {
+  font-family: 'Inter', sans-serif;
+  // line-height: 1.5;
 }
 
 .container {
@@ -59,7 +64,8 @@ ul {
   margin: 0;
   padding: 0;
 }
-a {
+a,
+abbr {
   text-decoration: none;
   color: inherit;
 }
@@ -83,6 +89,7 @@ i {
   border: none;
   background: none;
 }
+
 header {
   height: $header-height;
   display: flex;
@@ -127,7 +134,7 @@ footer {
           font-weight: 500;
         }
         :hover {
-          background-color: var(--neutral-100);
+          background-color: var(--neutral-150);
         }
       }
     }
@@ -169,7 +176,7 @@ table {
   padding: 0 0.6rem;
   position: sticky;
   top: 0;
-  border-bottom: 1px solid $border-color;
+  // border-bottom: 1px solid $border-color;
 
   div {
     display: flex;
@@ -205,8 +212,73 @@ table {
     0 2px 4px rgba(0, 0, 0, 0.15),
     0 -2px 4px rgba(0, 0, 0, 0.15);
 }
-.bold {
-  font-weight: 600;
+.message-container {
+  padding: 1rem 1.5rem;
+  .message-header {
+    margin-bottom: 1.5rem;
+    .subject {
+      font-size: 24px;
+      margin-bottom: 1rem;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      .date {
+        color: var(--neutral-500);
+      }
+    }
+    .from {
+      font-weight: 600;
+    }
+    .to {
+      margin-top: 0.5rem;
+      font-size: 12px;
+      color: var(--neutral-600);
+    }
+  }
+  .message-body {
+    line-height: 1.5;
+  }
+  .attachments {
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+
+    .title {
+      padding: 1rem 0;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      p {
+        font-weight: 600;
+        font-size: 16px;
+      }
+    }
+
+    ul {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+
+      li {
+        border: 1px solid $border-color;
+        padding: 0.6rem;
+        display: flex;
+        align-items: center;
+
+        gap: 1rem;
+
+        .filename {
+          font-weight: 600;
+        }
+        .size {
+          font-size: 12px;
+          color: var(--neutral-500);
+        }
+      }
+    }
+  }
 }
 .error-container {
   display: flex;

@@ -69,6 +69,8 @@ func (ic *ImapClient) FetchMessage(ctx context.Context, specifier string, uid ui
 	msgchan := make(chan *imap.Message, 1)
 	done := make(chan error, 1)
 
+	ic.Lock()
+	defer ic.Unlock()
 	go func() {
 		done <- ic.conn.UidFetch(seqset, items, msgchan)
 	}()

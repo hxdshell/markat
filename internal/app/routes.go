@@ -22,7 +22,8 @@ func InitRouter() *mux.Router {
 	})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS", "DELETE", "PUT"})
-	corsMiddleware := handlers.CORS(headersOk, originsOk, methodsOk)
+	exposed := handlers.ExposedHeaders([]string{"Content-Disposition"})
+	corsMiddleware := handlers.CORS(headersOk, originsOk, methodsOk, exposed)
 
 	r.NotFoundHandler = corsMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
@@ -47,4 +48,5 @@ func RegisterRoutes(a *App) {
 	r.HandleFunc("/api/envelopes/{page:[0-9]+}", a.FetchEnvelopes).Methods("GET")
 	r.HandleFunc("/api/message/{mb}/{uid:[0-9]+}", a.FetchMessage).Methods("GET")
 	r.HandleFunc("/api/meta/{mb}/{uid:[0-9]+}", a.FetchMeta).Methods("GET")
+	r.HandleFunc("/api/attachment/{mb}/{uid:[0-9]+}/{specifier}", a.FetchAttachment).Methods("GET")
 }

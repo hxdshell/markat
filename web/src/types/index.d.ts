@@ -24,3 +24,20 @@ interface Envelope {
   size: string
   flags: string[]
 }
+interface MessageAttachment {
+  specifier: string
+  contentType: string
+  encoding: string
+  fileName: string
+  size: string
+}
+
+interface MessageMeta {
+  uid: number
+  mb: string
+  from: string
+  to: string
+  subject: string
+  date: string
+  attachments: MessageAttachment[] | null
+}

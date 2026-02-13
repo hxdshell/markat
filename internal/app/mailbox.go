@@ -85,7 +85,7 @@ func (a *App) FetchEnvelopes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	envelopeData, err := a.Core.FetchEnvelopes(ctx, page, 10)
+	envelopeData, err := a.Core.FetchEnvelopes(ctx, page, 15)
 	if err != nil {
 		if err.Error() == "404" {
 			w.WriteHeader(http.StatusNotFound)

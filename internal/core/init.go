@@ -9,10 +9,12 @@ type Core struct {
 	sync.RWMutex
 	ImapClient         *imapclient.ImapClient
 	RecentMsgStructure *MessageStructure
+	CurrentAttachments []MessageAttachmentHeader
 }
 
 func InitCore(client *imapclient.ImapClient) *Core {
 	return &Core{
-		ImapClient: client,
+		ImapClient:         client,
+		CurrentAttachments: nil,
 	}
 }

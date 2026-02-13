@@ -2,6 +2,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  notFound,
   Outlet,
   redirect,
 } from '@tanstack/react-router'
@@ -9,6 +10,9 @@ import Layout from '../pages/Layout'
 import { fetchAllMailboxes } from '../api/mailbox'
 import MailBoxPage from '../pages/MailBoxPage'
 import ErrorPage from '../pages/ErrorPage'
+import { fetchMessage, fetchMeta } from '../api/message'
+import MessagePage from '../pages/MessagePage'
+import Loading from '../components/ui/Loading'
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -46,7 +50,29 @@ export const mbNameRoute = createRoute({
   },
   component: MailBoxPage,
 })
+
+export const msgRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: 'message/$mbName/$uid',
+  loader: async ({ params }) => {
+    const uid = parseInt(String(params.uid), 10)
+    if (uid <= 0) {
+      throw notFound()
+    }
+    const meta = await fetchMeta(params.mbName, uid)
+    const data = await fetchMessage(params.mbName, uid)
+    return { meta: meta.data, data: data }
+  },
+  component: MessagePage,
+  pendingComponent: Loading,
+  pendingMs: 0,
+})
+
 const routeTree = rootRoute.addChildren([
-  appRoute.addChildren([indexRoute, mbRoute.addChildren([mbNameRoute])]),
+  appRoute.addChildren([
+    indexRoute,
+    mbRoute.addChildren([mbNameRoute]),
+    msgRoute,
+  ]),
 ])
 export const router = createRouter({ routeTree })

@@ -112,6 +112,7 @@ export default function MailBoxPage() {
           refresh={refresh}
           prev={prev}
           next={next}
+          mbName={mbName}
         />
       )
     } else {

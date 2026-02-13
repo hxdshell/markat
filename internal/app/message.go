@@ -67,3 +67,32 @@ func (a *App) FetchMessage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write(msg)
 }
+func (a *App) FetchAttachment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	vars := mux.Vars(r)
+	uid, err := strconv.Atoi(vars["uid"])
+
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	mb := vars["mb"]
+	specifier := vars["specifier"]
+	h, b, err := a.Core.FetchAttachment(ctx, mb, uint32(uid), specifier)
+	if err != nil {
+		log.Println(err)
+		if err.Error() == "not found" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", h.Type)
+	w.Header().Set("Content-Disposition", h.Disposition)
+
+	w.Header().Set("Content-Length", strconv.FormatUint(uint64(len(b)), 10))
+	w.Write(b)
+}

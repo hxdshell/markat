@@ -1,9 +1,9 @@
-const API_URL = 'http://localhost:3000/api'
+export const API_URL = 'http://localhost:3000/api'
 export const client = {
   get: async (path: string): Promise<ApiResponseType> => {
     const res = await fetch(`${API_URL}${path}`)
+    const contentType = res.headers.get('Content-Type')
     if (!res.ok) {
-      const contentType = res.headers.get('Content-Type')
       if (contentType !== 'application/json') {
         const cause = await res.text()
         return {
@@ -14,8 +14,13 @@ export const client = {
         }
       }
     }
-    const resData = await res.json()
-    return { ...resData, status: res.status }
+    if (contentType === 'application/json') {
+      const resData = await res.json()
+      return { ...resData, status: res.status }
+    } else {
+      const resData = await res.text()
+      return { message: 'success', data: resData, status: res.status }
+    }
   },
   put: async (path: string, reqData: any): Promise<ApiResponseType> => {
     const res = await fetch(`${API_URL}${path}`, {
@@ -25,8 +30,8 @@ export const client = {
       },
       body: JSON.stringify(reqData),
     })
+    const contentType = res.headers.get('Content-Type')
     if (!res.ok) {
-      const contentType = res.headers.get('Content-Type')
       if (contentType !== 'application/json') {
         const cause = await res.text()
         return {
@@ -37,7 +42,12 @@ export const client = {
         }
       }
     }
-    const resData = await res.json()
-    return { ...resData, status: res.status }
+    if (contentType === 'application/json') {
+      const resData = await res.json()
+      return { ...resData, status: res.status }
+    } else {
+      const resData = await res.text()
+      return { message: 'success', data: resData, status: res.status }
+    }
   },
 }
