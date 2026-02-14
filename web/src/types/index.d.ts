@@ -2,6 +2,7 @@ interface ApiResponseType {
   status: number
   message: string
   data: any
+  contentType?: string
   cause?: string
 }
 

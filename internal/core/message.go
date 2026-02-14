@@ -1,6 +1,7 @@
 package core
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 
 type MessageText struct {
 	Specifier   string
+	Path        []int
 	ContentType string
 	Encoding    string
 }
@@ -72,6 +74,7 @@ func (c *Core) walkBs(bs *imap.BodyStructure, ms *MessageStructure, parts []int)
 
 			specifier := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(parts)), "."), "[]")
 
+			msgTxt.Path = parts
 			msgTxt.Specifier = specifier
 			msgTxt.Encoding = bs.Encoding
 
@@ -202,54 +205,72 @@ func (c *Core) msgStructureFromCache(ctx context.Context, mb string, uid uint32)
 	return c.fetchMessageStructure(ctx, mb, uid)
 }
 
-func (c *Core) FetchMessageText(ctx context.Context, mb string, uid uint32) ([]byte, error) {
+func (c *Core) FetchMessageText(ctx context.Context, mb string, uid uint32) ([]byte, string, error) {
 	var b []byte
+	contentType := ""
 
 	ms, err := c.msgStructureFromCache(ctx, mb, uid)
 	if err != nil {
-		return b, err
+		return b, contentType, err
 	}
 
-	if ms.TextPlain == -1 {
-		// only deal with text/plain for now
-		return b, errors.New("not found")
+	textSpecifier := -1
+	if ms.TextHtml != -1 {
+		textSpecifier = ms.TextHtml
+	} else if ms.TextPlain != -1 {
+		textSpecifier = ms.TextPlain
+	} else {
+		return b, contentType, errors.New("not found")
 	}
-	part := ms.Text[ms.TextPlain]
+
+	part := ms.Text[textSpecifier]
+	contentType = part.ContentType
 	specifier := part.Specifier
 	msg, _, err := c.ImapClient.FetchMessage(ctx, specifier, uid)
 
 	if err != nil {
-		return b, err
+		return b, contentType, err
 	}
 	if msg == nil {
-		return b, errors.New("not found")
+		return b, contentType, errors.New("not found")
 	}
 
-	var r imap.Literal
+	var msgR imap.Literal
 	for _, literal := range msg.Body {
-		r = literal // only one section
-	}
-	if strings.HasPrefix(ms.MainType, "text/") {
-		entity, err := message.Read(r)
-		if err != nil {
-			return b, err
-		}
-		b, err = io.ReadAll(entity.Body)
-		if err != nil {
-			return b, err
-		}
-		return b, nil
-	}
-	b, err = io.ReadAll(r)
-	if err != nil {
-		return b, err
+		msgR = literal // only one section
 	}
 
-	if part.Encoding == "base64" {
-		b, err = utils.DecodeBase64(b)
+	var entity *message.Entity = nil
+	bufferedMsgBody, err := io.ReadAll(msgR)
+	if err != nil {
+		return b, contentType, err
 	}
-	log.Println("MESSAGE:", mb, uid)
-	return b, nil
+	entity, err = message.Read(bytes.NewReader(bufferedMsgBody))
+	if err != nil {
+		msgMime, _, err := c.ImapClient.FetchMime(ctx, specifier, uid)
+		if err != nil {
+			return b, contentType, err
+		}
+		if msgMime == nil {
+			return b, contentType, errors.New("not found")
+		}
+		var mimeR imap.Literal
+		for _, literal := range msgMime.Body {
+			mimeR = literal // only one section
+		}
+		mr := io.MultiReader(mimeR, bytes.NewReader(bufferedMsgBody))
+
+		entity, err = message.Read(mr)
+		if err != nil {
+			return b, contentType, err
+		}
+	}
+	b, err = io.ReadAll(entity.Body)
+	if err != nil {
+		return b, contentType, err
+	}
+	log.Println("MESSAGE:", mb, uid, contentType)
+	return b, contentType, nil
 }
 
 func (c *Core) FetchAttachment(ctx context.Context, mb string, uid uint32, specifier string) (MessageAttachmentHeader, []byte, error) {

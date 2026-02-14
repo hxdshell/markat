@@ -54,7 +54,7 @@ func (a *App) FetchMessage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mb := vars["mb"]
-	msg, err := a.Core.FetchMessageText(ctx, mb, uint32(uid))
+	msg, ct, err := a.Core.FetchMessageText(ctx, mb, uint32(uid))
 	if err != nil {
 		log.Println(err)
 		if err.Error() == "not found" {
@@ -64,7 +64,7 @@ func (a *App) FetchMessage(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "text/plain")
+	w.Header().Set("Content-Type", ct)
 	w.Write(msg)
 }
 func (a *App) FetchAttachment(w http.ResponseWriter, r *http.Request) {

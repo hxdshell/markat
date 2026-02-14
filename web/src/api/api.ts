@@ -11,15 +11,25 @@ export const client = {
           message: 'get request failed',
           data: null,
           cause: cause,
+          contentType: contentType ?? undefined,
         }
       }
     }
     if (contentType === 'application/json') {
       const resData = await res.json()
-      return { ...resData, status: res.status }
+      return {
+        ...resData,
+        status: res.status,
+        contentType: contentType ?? undefined,
+      }
     } else {
       const resData = await res.text()
-      return { message: 'success', data: resData, status: res.status }
+      return {
+        message: 'success',
+        data: resData,
+        status: res.status,
+        contentType: contentType ?? undefined,
+      }
     }
   },
   put: async (path: string, reqData: any): Promise<ApiResponseType> => {
@@ -39,15 +49,25 @@ export const client = {
           message: 'get request failed',
           data: null,
           cause: cause,
+          contentType: contentType ?? undefined,
         }
       }
     }
     if (contentType === 'application/json') {
       const resData = await res.json()
-      return { ...resData, status: res.status }
+      return {
+        ...resData,
+        status: res.status,
+        contentType: contentType ?? undefined,
+      }
     } else {
       const resData = await res.text()
-      return { message: 'success', data: resData, status: res.status }
+      return {
+        message: 'success',
+        data: resData,
+        status: res.status,
+        contentType: contentType ?? undefined,
+      }
     }
   },
 }

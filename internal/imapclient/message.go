@@ -84,3 +84,33 @@ func (ic *ImapClient) FetchMessage(ctx context.Context, specifier string, uid ui
 		return msg, bodySection, nil
 	}
 }
+
+func (ic *ImapClient) FetchMime(ctx context.Context, specifier string, uid uint32) (*imap.Message, *imap.BodySectionName, error) {
+	seqset := &imap.SeqSet{}
+	seqset.AddNum(uid)
+
+	bodySection := &imap.BodySectionName{
+		Peek: true,
+		BodyPartName: imap.BodyPartName{
+			Specifier: imap.PartSpecifier(specifier + "." + imap.MIMESpecifier),
+		},
+	}
+	items := []imap.FetchItem{bodySection.FetchItem()}
+	msgchan := make(chan *imap.Message, 1)
+	done := make(chan error, 1)
+
+	ic.Lock()
+	defer ic.Unlock()
+	go func() {
+		done <- ic.conn.UidFetch(seqset, items, msgchan)
+	}()
+
+	select {
+	case <-ctx.Done():
+		return nil, nil, ctx.Err()
+	case err := <-done:
+		return nil, nil, err
+	case msg := <-msgchan:
+		return msg, bodySection, nil
+	}
+}

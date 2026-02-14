@@ -11,6 +11,7 @@ export default function MessagePage() {
   const params = msgRoute.useParams()
   const meta = loaderData.meta
   const message = loaderData.data.data
+  const isHtml = loaderData.data.contentType === 'text/html'
 
   const navigate = useNavigate()
 
@@ -21,10 +22,9 @@ export default function MessagePage() {
     uid: number,
     specifier: string,
   ) {
+    setAttchmntLoading(true)
     const attchmnt = await fetchAttachment(mb, uid, specifier)
     if (!attchmnt) return
-
-    setAttchmntLoading(true)
 
     const url = window.URL.createObjectURL(attchmnt.blob)
     const tempLink = document.createElement('a')
@@ -60,7 +60,11 @@ export default function MessagePage() {
           <p className="to">to {meta.to}</p>
         </div>
         <div className="message-body">
-          <pre>{message}</pre>
+          {isHtml ? (
+            <div dangerouslySetInnerHTML={{ __html: message }}></div>
+          ) : (
+            <pre>{message}</pre>
+          )}
         </div>
         {meta.attachments ? (
           <div className="attachments">

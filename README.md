@@ -4,10 +4,10 @@
 
 - [x] Navigate mailboxes
 - [x] Fetch Envelopes and paginate
-- [ ] Render the message body and attachments
+- [x] Render the message body and attachments
   - [x] Render single part with plain text
-  - [ ] Render Multipart text with text or html
-  - [ ] Render Multipart message recursively to handle multipart/mixed
+  - [x] Render html
+  - [x] Fetch attachments
 - [ ] TEST and handle errors
 - [ ] Start implementing imap commands one by one
 - [ ] Manage threads
