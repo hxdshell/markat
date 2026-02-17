@@ -12,6 +12,7 @@
   font-display: swap;
 }
 :root {
+  --bg: white;
   --neutral-50: #fafafa;
   --neutral-100: #f5f5f5;
   --neutral-150: #ededed;
@@ -47,6 +48,7 @@ body {
   font-weight: 400;
   font-size: 14px;
   color: $text-default-color;
+  background-color: var(--bg);
 
   overflow: hidden; // There's some overflow in the body. I should debug this later
 }
@@ -169,7 +171,16 @@ table {
 }
 .toolbar {
   height: 44px;
-  background-color: var(--neutral-50);
+  background-color: var(--bg);
+  padding: 1rem 0.6rem;
+  display: flex;
+  gap: 1.5rem;
+  position: sticky;
+  top: 0;
+}
+.navbar {
+  height: 44px;
+  background-color: var(--bg);
   display: flex;
   align-items: center;
   justify-content: space-between;

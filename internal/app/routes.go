@@ -43,10 +43,15 @@ func RegisterRoutes(a *App) {
 	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "This is Markat - a mail client\n")
 	}).Methods("GET")
+
+	// -- Mailbox --
 	r.HandleFunc("/api/mb/list", a.MailboxListHandler).Methods("GET")
 	r.HandleFunc("/api/mb/select", a.SelectMailBoxHandler).Methods("PUT")
 	r.HandleFunc("/api/envelopes/{page:[0-9]+}", a.FetchEnvelopes).Methods("GET")
+
+	// -- Message --
 	r.HandleFunc("/api/message/{mb}/{uid:[0-9]+}", a.FetchMessage).Methods("GET")
 	r.HandleFunc("/api/meta/{mb}/{uid:[0-9]+}", a.FetchMeta).Methods("GET")
 	r.HandleFunc("/api/attachment/{mb}/{uid:[0-9]+}/{specifier}", a.FetchAttachment).Methods("GET")
+	r.HandleFunc("/api/mark-seen-unseen/{mb}/{uid:[0-9]+}", a.MarkSeenUnseen).Methods("PUT")
 }

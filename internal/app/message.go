@@ -9,6 +9,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
+type MarkSeenUnseenRequest struct {
+	Seen bool `json:"seen"`
+}
+
 func (a *App) FetchMeta(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	w.Header().Set("Content-Type", "application/json")
@@ -95,4 +99,23 @@ func (a *App) FetchAttachment(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Length", strconv.FormatUint(uint64(len(b)), 10))
 	w.Write(b)
+}
+
+func (a *App) MarkSeenUnseen(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	vars := mux.Vars(r)
+
+	mb := vars["mb"]
+	uid, err := strconv.Atoi(vars["uid"])
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	var markReq MarkSeenUnseenRequest
+	json.NewDecoder(r.Body).Decode(&markReq)
+
+	err = a.Core.MarkSeenUnseen(ctx, mb, uint32(uid), markReq.Seen)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

@@ -10,7 +10,7 @@ import Layout from '../pages/Layout'
 import { fetchAllMailboxes } from '../api/mailbox'
 import MailBoxPage from '../pages/MailBoxPage'
 import ErrorPage from '../pages/ErrorPage'
-import { fetchMessage, fetchMeta } from '../api/message'
+import { fetchMessage, fetchMeta, markSeenUnseen } from '../api/message'
 import MessagePage from '../pages/MessagePage'
 import Loading from '../components/ui/Loading'
 
@@ -61,6 +61,8 @@ export const msgRoute = createRoute({
     }
     const meta = await fetchMeta(params.mbName, uid)
     const data = await fetchMessage(params.mbName, uid)
+    await markSeenUnseen(params.mbName, params.uid, true)
+
     return { meta: meta.data, data: data }
   },
   component: MessagePage,

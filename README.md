@@ -7,8 +7,9 @@
 - [x] Render the message body and attachments
   - [x] Render single part with plain text
   - [x] Render html
+  - [ ] Render image with cid
   - [x] Fetch attachments
-- [ ] TEST and handle errors
+- [ ] Test and handle errors
 - [ ] Start implementing imap commands one by one
 - [ ] Manage threads
 - [ ] Implement Search

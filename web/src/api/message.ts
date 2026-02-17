@@ -36,3 +36,11 @@ export async function fetchAttachment(
 
   return { blob: blob, filename: filename }
 }
+
+export async function markSeenUnseen(
+  mb: string,
+  uid: number | string,
+  seen: boolean,
+) {
+  return client.put(`/mark-seen-unseen/${mb}/${uid}`, { seen: seen })
+}

@@ -336,3 +336,21 @@ func (c *Core) FetchAttachment(ctx context.Context, mb string, uid uint32, speci
 	log.Println("ATTACHMENT:", mb, uid, specifier)
 	return h, b, nil
 }
+
+func (c *Core) MarkSeenUnseen(ctx context.Context, mb string, uid uint32, seen bool) error {
+	currentMb := c.ImapClient.GetCurrentMbName()
+
+	if currentMb != mb {
+		_, err := c.SelectMailBox(ctx, mb)
+		if err != nil {
+			return err
+		}
+	}
+	err := c.ImapClient.MarkSeenUnseen(ctx, uid, seen)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("MESSAGE", uid, "MARKED")
+	}
+	return err
+}

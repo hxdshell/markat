@@ -1,9 +1,19 @@
-import { ArrowLeft, Download, FileIcon, RefreshCw } from 'lucide-react'
+import {
+  ArrowLeft,
+  Download,
+  FileCodeCorner,
+  FileIcon,
+  FolderDown,
+  FolderInput,
+  RefreshCw,
+  Trash2,
+} from 'lucide-react'
 import { msgRoute } from '../router'
 import IconBtn from '../components/ui/IconBtn'
 import { useNavigate } from '@tanstack/react-router'
 import { fetchAttachment } from '../api/message'
 import { useState } from 'react'
+import MarkSeenUnseen from '../components/ui/MarkSeenUnseen'
 
 export default function MessagePage() {
   const loaderData: { meta: MessageMeta; data: ApiResponseType } =
@@ -49,6 +59,19 @@ export default function MessagePage() {
         >
           <ArrowLeft />
         </IconBtn>
+        <IconBtn abbr="Archive" onClick={() => {}}>
+          <FolderDown />
+        </IconBtn>
+        <MarkSeenUnseen mb={meta.mb} uid={meta.uid} />
+        <IconBtn abbr="Move to folder" onClick={() => {}}>
+          <FolderInput />
+        </IconBtn>
+        <IconBtn abbr="Move to trash" onClick={() => {}}>
+          <Trash2 />
+        </IconBtn>
+        <IconBtn abbr="Read original message" onClick={() => {}}>
+          <FileCodeCorner />
+        </IconBtn>
       </div>
       <div className="message-container">
         <div className="message-header">
@@ -84,9 +107,7 @@ export default function MessagePage() {
                     <FileIcon />
                   </span>
                   <p className="filename">
-                    <abbr title={`${item.contentType} ${item.specifier}`}>
-                      {item.fileName}
-                    </abbr>
+                    <abbr title={`${item.contentType}`}>{item.fileName}</abbr>
                   </p>
                   <p className="size">{item.size}</p>
                   <span>
