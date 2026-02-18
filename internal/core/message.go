@@ -346,11 +346,31 @@ func (c *Core) MarkSeenUnseen(ctx context.Context, mb string, uid uint32, seen b
 			return err
 		}
 	}
-	err := c.ImapClient.MarkSeenUnseen(ctx, uid, seen)
+	err := c.ImapClient.StoreFlagSilent(ctx, uid, seen, imap.SeenFlag)
 	if err != nil {
 		log.Println(err)
 	} else {
 		log.Println("MESSAGE", uid, "MARKED")
+	}
+	return err
+}
+
+func (c *Core) Move(ctx context.Context, mb string, uid uint32, dest string) error {
+	currentMb := c.ImapClient.GetCurrentMbName()
+	// destGeneric := strings.ToLower(dest)
+
+	if currentMb != mb {
+		_, err := c.SelectMailBox(ctx, mb)
+		if err != nil {
+			return err
+		}
+	}
+	err := c.ImapClient.Move(ctx, uid, dest)
+	if err != nil {
+		log.Println(err)
+	} else {
+
+		log.Println("MESSAGE", uid, "MOVED TO", dest)
 	}
 	return err
 }

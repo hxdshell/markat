@@ -1,19 +1,9 @@
-import {
-  ArrowLeft,
-  Download,
-  FileCodeCorner,
-  FileIcon,
-  FolderDown,
-  FolderInput,
-  RefreshCw,
-  Trash2,
-} from 'lucide-react'
+import { Download, FileIcon, RefreshCw } from 'lucide-react'
 import { msgRoute } from '../router'
 import IconBtn from '../components/ui/IconBtn'
-import { useNavigate } from '@tanstack/react-router'
 import { fetchAttachment } from '../api/message'
 import { useState } from 'react'
-import MarkSeenUnseen from '../components/ui/MarkSeenUnseen'
+import MessageToolbar from '../components/app/MessageToolbar'
 
 export default function MessagePage() {
   const loaderData: { meta: MessageMeta; data: ApiResponseType } =
@@ -22,8 +12,6 @@ export default function MessagePage() {
   const meta = loaderData.meta
   const message = loaderData.data.data
   const isHtml = loaderData.data.contentType === 'text/html'
-
-  const navigate = useNavigate()
 
   const [attchmntLoading, setAttchmntLoading] = useState(false)
 
@@ -50,29 +38,7 @@ export default function MessagePage() {
   }
   return (
     <div className="envelope-container">
-      <div className="toolbar">
-        <IconBtn
-          abbr="Go back"
-          onClick={() => {
-            navigate({ to: `/mb/${meta.mb}` })
-          }}
-        >
-          <ArrowLeft />
-        </IconBtn>
-        <IconBtn abbr="Archive" onClick={() => {}}>
-          <FolderDown />
-        </IconBtn>
-        <MarkSeenUnseen mb={meta.mb} uid={meta.uid} />
-        <IconBtn abbr="Move to folder" onClick={() => {}}>
-          <FolderInput />
-        </IconBtn>
-        <IconBtn abbr="Move to trash" onClick={() => {}}>
-          <Trash2 />
-        </IconBtn>
-        <IconBtn abbr="Read original message" onClick={() => {}}>
-          <FileCodeCorner />
-        </IconBtn>
-      </div>
+      <MessageToolbar mb={meta.mb} uid={meta.uid} />
       <div className="message-container">
         <div className="message-header">
           <p className="subject">{meta.subject}</p>

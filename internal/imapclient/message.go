@@ -114,20 +114,41 @@ func (ic *ImapClient) FetchMime(ctx context.Context, specifier string, uid uint3
 		return msg, bodySection, nil
 	}
 }
-func (ic *ImapClient) MarkSeenUnseen(ctx context.Context, uid uint32, seen bool) error {
+func (ic *ImapClient) StoreFlagSilent(ctx context.Context, uid uint32, add bool, flag string) error {
 	seqset := &imap.SeqSet{}
 	seqset.AddNum(uid)
 
 	var flagOp imap.FlagsOp = imap.RemoveFlags
-	if seen {
+	if add {
 		flagOp = imap.AddFlags
 	}
 	// this will be empty since it's a silent operation
 	msgchan := make(chan *imap.Message, 1)
 	done := make(chan error, 1)
 
+	ic.Lock()
+	defer ic.Unlock()
 	go func() {
-		done <- ic.conn.UidStore(seqset, imap.FormatFlagsOp(flagOp, true), []any{imap.SeenFlag}, msgchan)
+		done <- ic.conn.UidStore(seqset, imap.FormatFlagsOp(flagOp, true), []any{flag}, msgchan)
+	}()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-done:
+		return err
+	}
+}
+
+func (ic *ImapClient) Move(ctx context.Context, uid uint32, dest string) error {
+	seqset := &imap.SeqSet{}
+	seqset.AddNum(uid)
+
+	ic.Lock()
+	defer ic.Unlock()
+	done := make(chan error, 1)
+	go func() {
+		done <- ic.conn.UidMove(seqset, dest)
 	}()
 
 	select {

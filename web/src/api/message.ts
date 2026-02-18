@@ -44,3 +44,11 @@ export async function markSeenUnseen(
 ) {
   return client.put(`/mark-seen-unseen/${mb}/${uid}`, { seen: seen })
 }
+
+export async function moveToFolder(
+  mb: string,
+  uid: number | string,
+  dest: string,
+) {
+  return client.put(`/move/${mb}/${uid}`, { dest: dest })
+}
