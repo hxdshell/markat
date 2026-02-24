@@ -34,7 +34,7 @@ func (ic *ImapClient) FetchBodyStrucutre(ctx context.Context, uid uint32) (*imap
 func (ic *ImapClient) FetchHeader(ctx context.Context, uid uint32) (*imap.Message, error) {
 	seqset := &imap.SeqSet{}
 	seqset.AddNum(uid)
-	items := []imap.FetchItem{imap.FetchRFC822Header, imap.FetchEnvelope}
+	items := []imap.FetchItem{imap.FetchRFC822Header, imap.FetchEnvelope, imap.FetchFlags}
 	msgchan := make(chan *imap.Message, 1)
 	done := make(chan error, 1)
 
@@ -114,9 +114,9 @@ func (ic *ImapClient) FetchMime(ctx context.Context, specifier string, uid uint3
 		return msg, bodySection, nil
 	}
 }
-func (ic *ImapClient) StoreFlagSilent(ctx context.Context, uid uint32, add bool, flag string) error {
+func (ic *ImapClient) StoreFlagSilent(ctx context.Context, uids []uint32, add bool, flag string) error {
 	seqset := &imap.SeqSet{}
-	seqset.AddNum(uid)
+	seqset.AddNum(uids...)
 
 	var flagOp imap.FlagsOp = imap.RemoveFlags
 	if add {
@@ -140,9 +140,9 @@ func (ic *ImapClient) StoreFlagSilent(ctx context.Context, uid uint32, add bool,
 	}
 }
 
-func (ic *ImapClient) Move(ctx context.Context, uid uint32, dest string) error {
+func (ic *ImapClient) Move(ctx context.Context, uids []uint32, dest string) error {
 	seqset := &imap.SeqSet{}
-	seqset.AddNum(uid)
+	seqset.AddNum(uids...)
 
 	ic.Lock()
 	defer ic.Unlock()

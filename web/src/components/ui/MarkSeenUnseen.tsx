@@ -14,7 +14,9 @@ export default function MarkSeenUnseen({
   const seenValue = seen ? 'unseen' : 'seen'
 
   async function mark(mb: string, uid: number) {
-    const res = await markSeenUnseen(mb, uid, !seen)
+    const uids = new Array()
+    uids.push(uid)
+    const res = await markSeenUnseen(mb, uids, !seen)
     if (res.status == 200) {
       setSeen((seen) => !seen)
     }

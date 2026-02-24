@@ -39,16 +39,12 @@ export async function fetchAttachment(
 
 export async function markSeenUnseen(
   mb: string,
-  uid: number | string,
+  uids: number[],
   seen: boolean,
 ) {
-  return client.put(`/mark-seen-unseen/${mb}/${uid}`, { seen: seen })
+  return client.put(`/mark-seen-unseen`, { mb: mb, uids: uids, seen: seen })
 }
 
-export async function moveToFolder(
-  mb: string,
-  uid: number | string,
-  dest: string,
-) {
-  return client.put(`/move/${mb}/${uid}`, { dest: dest })
+export async function moveToFolder(mb: string, uids: number[], dest: string) {
+  return client.put(`/move`, { mb: mb, uids: uids, dest: dest })
 }

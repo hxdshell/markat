@@ -53,6 +53,8 @@ func RegisterRoutes(a *App) {
 	r.HandleFunc("/api/message/{mb}/{uid:[0-9]+}", a.FetchMessage).Methods("GET")
 	r.HandleFunc("/api/meta/{mb}/{uid:[0-9]+}", a.FetchMeta).Methods("GET")
 	r.HandleFunc("/api/attachment/{mb}/{uid:[0-9]+}/{specifier}", a.FetchAttachment).Methods("GET")
-	r.HandleFunc("/api/mark-seen-unseen/{mb}/{uid:[0-9]+}", a.MarkSeenUnseen).Methods("PUT")
-	r.HandleFunc("/api/move/{mb}/{uid:[0-9]+}", a.Move).Methods("PUT")
+
+	// -- Actions on message --
+	r.HandleFunc("/api/mark-seen-unseen", a.MarkSeenUnseen).Methods("PUT")
+	r.HandleFunc("/api/move", a.Move).Methods("PUT")
 }

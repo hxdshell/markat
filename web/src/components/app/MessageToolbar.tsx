@@ -21,7 +21,9 @@ export default function MessageToolbar({
   const mbGeneric = mb.toLowerCase()
 
   async function move(mb: string, uid: number, dest: string) {
-    const res = await moveToFolder(mb, uid, dest)
+    const uids = new Array()
+    uids.push(uid)
+    const res = await moveToFolder(mb, uids, dest)
     if (res.status === 200) {
       navigate({ to: `/mb/${mb}` })
     }

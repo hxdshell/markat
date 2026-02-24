@@ -10,10 +10,14 @@ import (
 )
 
 type MarkSeenUnseenRequest struct {
-	Seen bool `json:"seen"`
+	Mb   string   `json:"mb"`
+	Uids []uint32 `json:"uids"`
+	Seen bool     `json:"seen"`
 }
 type MoveRequest struct {
-	Dest string `json:"dest"`
+	Mb   string   `json:"mb"`
+	Uids []uint32 `json:"uids"`
+	Dest string   `json:"dest"`
 }
 
 func (a *App) FetchMeta(w http.ResponseWriter, r *http.Request) {
@@ -106,22 +110,14 @@ func (a *App) FetchAttachment(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) MarkSeenUnseen(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	vars := mux.Vars(r)
 
-	mb := vars["mb"]
-	uid, err := strconv.Atoi(vars["uid"])
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
 	var markReq MarkSeenUnseenRequest
-	err = json.NewDecoder(r.Body).Decode(&markReq)
+	err := json.NewDecoder(r.Body).Decode(&markReq)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	err = a.Core.MarkSeenUnseen(ctx, mb, uint32(uid), markReq.Seen)
+	err = a.Core.MarkSeenUnseen(ctx, markReq.Mb, markReq.Uids, markReq.Seen)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -129,22 +125,15 @@ func (a *App) MarkSeenUnseen(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) Move(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	vars := mux.Vars(r)
 
-	mb := vars["mb"]
-	uid, err := strconv.Atoi(vars["uid"])
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-	var markReq MoveRequest
-	err = json.NewDecoder(r.Body).Decode(&markReq)
+	var moveReq MoveRequest
+	err := json.NewDecoder(r.Body).Decode(&moveReq)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = a.Core.Move(ctx, mb, uint32(uid), markReq.Dest)
+	err = a.Core.Move(ctx, moveReq.Mb, moveReq.Uids, moveReq.Dest)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

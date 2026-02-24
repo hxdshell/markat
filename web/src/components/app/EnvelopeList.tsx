@@ -68,6 +68,7 @@ export default function EnvelopeList({
                 }
                 onClick={() => openMessage(envlp.uid)}
               >
+                <td>{envlp.uid}</td>
                 <td className="from">{envlp.from}</td>
                 <td className="subject">{envlp.subject}</td>
                 <td className="date">{envlp.date}</td>

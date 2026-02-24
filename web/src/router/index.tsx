@@ -61,7 +61,17 @@ export const msgRoute = createRoute({
     }
     const meta = await fetchMeta(params.mbName, uid)
     const data = await fetchMessage(params.mbName, uid)
-    await markSeenUnseen(params.mbName, params.uid, true)
+
+    if (meta.data) {
+      const flags: string[] | null = meta.data.flags
+      if (meta.data.flags !== null) {
+        if (!flags?.includes('\\Seen')) {
+          const uids = new Array<number>()
+          uids.push(uid)
+          await markSeenUnseen(params.mbName, uids, true)
+        }
+      }
+    }
 
     return { meta: meta.data, data: data }
   },

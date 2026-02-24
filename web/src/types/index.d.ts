@@ -41,4 +41,5 @@ interface MessageMeta {
   subject: string
   date: string
   attachments: MessageAttachment[] | null
+  flags: string[] | null
 }

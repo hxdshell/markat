@@ -57,6 +57,7 @@ type MessageMeta struct {
 	Subject     string              `json:"subject"`
 	Date        string              `json:"date"`
 	Attachments []MessageAttachment `json:"attachments"`
+	Flags       []string            `json:"flags"`
 }
 
 func (c *Core) walkBs(bs *imap.BodyStructure, ms *MessageStructure, parts []int) {
@@ -189,6 +190,7 @@ func (c *Core) FetchMeta(ctx context.Context, mb string, uid uint32) (*MessageMe
 		Subject:     msg.Envelope.Subject,
 		Date:        readableDate,
 		Attachments: ms.Attachments,
+		Flags:       msg.Flags,
 	}
 	return meta, nil
 }
@@ -337,7 +339,7 @@ func (c *Core) FetchAttachment(ctx context.Context, mb string, uid uint32, speci
 	return h, b, nil
 }
 
-func (c *Core) MarkSeenUnseen(ctx context.Context, mb string, uid uint32, seen bool) error {
+func (c *Core) MarkSeenUnseen(ctx context.Context, mb string, uids []uint32, seen bool) error {
 	currentMb := c.ImapClient.GetCurrentMbName()
 
 	if currentMb != mb {
@@ -346,16 +348,16 @@ func (c *Core) MarkSeenUnseen(ctx context.Context, mb string, uid uint32, seen b
 			return err
 		}
 	}
-	err := c.ImapClient.StoreFlagSilent(ctx, uid, seen, imap.SeenFlag)
+	err := c.ImapClient.StoreFlagSilent(ctx, uids, seen, imap.SeenFlag)
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Println("MESSAGE", uid, "MARKED")
+		log.Println("MESSAGE(S)", uids, "MARKED")
 	}
 	return err
 }
 
-func (c *Core) Move(ctx context.Context, mb string, uid uint32, dest string) error {
+func (c *Core) Move(ctx context.Context, mb string, uids []uint32, dest string) error {
 	currentMb := c.ImapClient.GetCurrentMbName()
 	// destGeneric := strings.ToLower(dest)
 
@@ -365,12 +367,12 @@ func (c *Core) Move(ctx context.Context, mb string, uid uint32, dest string) err
 			return err
 		}
 	}
-	err := c.ImapClient.Move(ctx, uid, dest)
+	err := c.ImapClient.Move(ctx, uids, dest)
 	if err != nil {
 		log.Println(err)
 	} else {
 
-		log.Println("MESSAGE", uid, "MOVED TO", dest)
+		log.Println("MESSAGE(s)", uids, "MOVED TO", dest)
 	}
 	return err
 }
