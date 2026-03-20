@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// This function doesn't handle all the edge cases and is temp.
+// I am currently using it for quickly testing connections using variables
 func LoadEnv(path string) {
 	file, err := os.Open(path)
 	if err != nil {

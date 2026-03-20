@@ -71,6 +71,10 @@ abbr {
   text-decoration: none;
   color: inherit;
 }
+abbr {
+  display: inline-block;
+  line-height: 0;
+}
 a:hover {
   text-decoration: underline;
 }
@@ -88,8 +92,18 @@ i {
 }
 .icon-btn {
   cursor: pointer;
+  display: inline-flex; // I still don't understand what this does but it somehow fixed the extra line height
   border: none;
   background: none;
+  padding: 8px;
+  border-radius: 50%;
+}
+.icon-btn:hover {
+  background-color: var(--neutral-150);
+}
+.pagination-control {
+  display: flex;
+  align-items: center;
 }
 
 header {
@@ -174,7 +188,8 @@ table {
   background-color: var(--bg);
   padding: 1rem 0.6rem;
   display: flex;
-  gap: 1.5rem;
+  align-items: center;
+  gap: 8px;
   position: sticky;
   top: 0;
 }
@@ -203,14 +218,17 @@ table {
   td {
     padding: 0.6rem;
   }
+  .checkbox {
+    width: 3%;
+  }
   .from {
-    width: 22%;
+    width: 21%;
   }
   .subject {
-    width: 60%;
+    width: 59%;
   }
   .date {
-    width: 18%;
+    width: 17%;
     color: var(--neutral-500);
     font-weight: normal;
     text-align: right;
@@ -303,4 +321,9 @@ table {
     font-size: 42px;
     color: var(--neutral-500);
   }
+}
+input[type='checkbox'] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
 }
